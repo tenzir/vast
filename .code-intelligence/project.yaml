@@ -1,0 +1,44 @@
+## The name of the container image used for building the fuzz tests
+build_container: "gcr.io/code-intelligence/vast"
+
+## The name of the container image used for running the fuzz tests. If
+## unspecified, the image of the build container is used.
+run_container: "gcr.io/code-intelligence/vast"
+
+## A list of source and destination paths. The source paths will be
+## bind-mounted from the host filesystem to the destination paths in
+## the container. Environment variables in the paths are expanded from
+## the host's environment.
+# mounts:
+#   - $HOME/build:/build
+
+## A relative path to the build script that executes inside the container
+## and builds the project. Relative to the project root directory.
+build_script: ".code-intelligence/build.sh"
+
+## Paths to the fuzz tests belonging to this test collection
+fuzz_tests:
+  - .code-intelligence/fuzz_targets/cli_parser.cpp
+  - .code-intelligence/fuzz_targets/query_parser.cpp
+
+## The sanitizers to use for the fuzz tests in this collection.
+## By default, only address sanitizer is used.
+sanitizers:
+  - address
+
+## The fuzzing engines to use for the fuzz tests in this collection.
+## By default, only libfuzzer is used. Note that because Java and Go
+## are only supported by libfuzzer, libfuzzer will always be used for
+## Java and Go fuzz tests, independent of this setting.
+engines:
+  - libfuzzer
+
+## The run time after which the fuzz tests are cancelled and
+## considered as having passed. Default value is 30 minutes.
+runtime: "30m0s"
+
+## The number of parallel executions per fuzz test
+parallel_executions: 1
+
+## If true, do not initialize the seed corpus of the fuzz tests.
+# skip_initial_corpus: false

@@ -1,0 +1,36 @@
+## The fuzz target type. If unspecified, the type is deduced from the
+## extension of the fuzz target source file.
+type: "c++"
+
+## If set to true, do not use the generic input corpus for this
+## fuzz target.
+# no_initial_corpus: false
+
+## Additional arguments to pass to the compiler during build
+compiler_extra_args:
+  - "-DFMT_LOCALE"
+  - "-DFMT_SAFE_DURATION_CAST"
+  - "-DFMT_SHARED"
+  - "-DFMT_USE_INTERNAL"
+  - "-DSIMDJSON_THREADS_ENABLED=1"
+  - "-DSIMDJSON_USING_LIBRARY=1"
+  - "-DSPDLOG_COMPILED_LIB"
+  - "-DSPDLOG_FMT_EXTERNAL"
+  - "-DSPDLOG_SHARED_LIB"
+  - "-O3"
+  - "-DNDEBUG"
+  - "-pthread"
+  - "-std=gnu++17"
+  - "-Ivast/libvast"
+  - "-I/home/benno/src/vast/reviews/libvast"
+  - "-Ivast/libvast/aux/caf/libcaf_core"
+  - "-I/home/benno/src/vast/reviews/libvast/aux/caf/libcaf_core"
+  - "-I/home/benno/src/vast/reviews/libvast/aux/caf/libcaf_io"
+  - "-I/home/benno/src/vast/reviews/libvast/aux/caf/libcaf_openssl"
+  - "-I/home/benno/src/vast/reviews/libvast/aux/robin-map/include"
+  - "-O3"
+  - "-DNDEBUG"
+  - "  -Wl,-rpath,/home/benno/src/vast/reviews/.code-intelligence/build-ninja/vast/lib:/usr/local/lib  vast/lib/libvast.so.2021.04  vast/lib/libcaf_openssl.so.0.17.6  vast/lib/libcaf_io.so.0.17.6  vast/lib/libcaf_core.so.0.17.6  /usr/lib/x86_64-linux-gnu/libssl.so  /usr/lib/x86_64-linux-gnu/libcrypto.so  /usr/lib/x86_64-linux-gnu/libflatbuffers.a  /usr/lib/x86_64-linux-gnu/libspdlog.so.1.8.1  /usr/lib/x86_64-linux-gnu/libfmt.so.7.1.3  -Wl,--as-needed  /usr/lib/x86_64-linux-gnu/libsimdjson.so.5.0.0  -pthread  -ldl  -Wl,-rpath-link,/usr/local/lib"
+
+## Additional arguments to pass to the fuzz target when it is executed
+# run_extra_args:

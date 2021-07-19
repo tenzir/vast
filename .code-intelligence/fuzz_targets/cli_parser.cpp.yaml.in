@@ -1,0 +1,14 @@
+## The fuzz target type. If unspecified, the type is deduced from the
+## extension of the fuzz target source file.
+type: "c++"
+
+## If set to true, do not use the generic input corpus for this
+## fuzz target.
+# no_initial_corpus: false
+
+## Additional arguments to pass to the compiler during build
+compiler_extra_args:
+@@JSON_BUILD_FLAGS@@
+
+## Additional arguments to pass to the fuzz target when it is executed
+# run_extra_args:
