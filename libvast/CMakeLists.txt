@@ -139,6 +139,15 @@ endif ()
 
 # -- caf -----------------------------------------------------------------------
 
+function (systemize_target tgt)
+  message(STATUS "Treating ${tgt} as a system dependency")
+  get_target_property(_includes ${tgt} INTERFACE_INCLUDE_DIRECTORIES)
+  set_property(
+    TARGET ${tgt}
+    APPEND
+    PROPERTY INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_includes}")
+endfunction ()
+
 # TODO: Require CAF to be installed.
 
 option(VAST_ENABLE_OPENSSL "Encrypt network communication" ON)
@@ -146,7 +155,8 @@ add_feature_info("VAST_ENABLE_OPENSSL" VAST_ENABLE_OPENSSL
                  "encrypt network communication.")
 
 if (VAST_ENABLE_DEVELOPER_MODE
-    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/aux/caf/CMakeLists.txt")
+    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/aux/caf/CMakeLists.txt"
+    AND NOT CAF_ROOT_DIR)
   set(VAST_ENABLE_BUNDLED_CAF_DEFAULT ON)
 else ()
   set(VAST_ENABLE_BUNDLED_CAF_DEFAULT OFF)
@@ -200,30 +210,17 @@ else ()
       set(CAF_BUILD_STATIC_ONLY ON)
     endif ()
     add_subdirectory(aux/caf)
-    get_target_property(libcaf_core_includes libcaf_core_${_linkage_suffix}
-                        INTERFACE_INCLUDE_DIRECTORIES)
-    get_target_property(
-      libcaf_core_system_includes libcaf_core_${_linkage_suffix}
-      INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
-    set_target_properties(
-      libcaf_core_${_linkage_suffix}
-      PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-                 "${libcaf_core_system_includes};${libcaf_core_includes}"
-                 EXPORT_NAME core)
+    systemize_target(libcaf_core_${_linkage_suffix})
+    set_target_properties(libcaf_core_${_linkage_suffix} PROPERTIES EXPORT_NAME
+                                                                    core)
     add_library(CAF::core ALIAS libcaf_core_${_linkage_suffix})
     target_compile_features(libcaf_core_${_linkage_suffix} INTERFACE cxx_std_17)
     target_compile_options(
       libcaf_core_${_linkage_suffix} PRIVATE -Wno-maybe-uninitialized
                                              -Wno-unknown-warning-option)
-    get_target_property(libcaf_io_includes libcaf_io_${_linkage_suffix}
-                        INTERFACE_INCLUDE_DIRECTORIES)
-    get_target_property(libcaf_io_system_includes libcaf_io_${_linkage_suffix}
-                        INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
-    set_target_properties(
-      libcaf_io_${_linkage_suffix}
-      PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-                 "${libcaf_io_system_includes};${libcaf_io_includes}"
-                 EXPORT_NAME io)
+    systemize_target(libcaf_io_${_linkage_suffix})
+    set_target_properties(libcaf_io_${_linkage_suffix} PROPERTIES EXPORT_NAME
+                                                                  io)
     target_compile_options(
       libcaf_io_${_linkage_suffix} PRIVATE -Wno-maybe-uninitialized
                                            -Wno-unknown-warning-option)
@@ -237,23 +234,22 @@ else ()
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     if (VAST_ENABLE_OPENSSL)
+      if (NOT TARGET libcaf_openssl_${_linkage_suffix})
+        string(
+          CONCAT err_message
+                 "VAST_ENABLE_OPENSSL is active but the CAF OpenSSL module is"
+                 " disabled. This is probably because the OpenSSL development"
+                 " dependencies weren't found")
+        message(FATAL_ERROR "${err_message}")
+      endif ()
       target_include_directories(
         libcaf_openssl_${_linkage_suffix}
         PUBLIC
           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/aux/caf/libcaf_openssl>
           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-      get_target_property(
-        libcaf_openssl_includes libcaf_openssl_${_linkage_suffix}
-        INTERFACE_INCLUDE_DIRECTORIES)
-      get_target_property(
-        libcaf_openssl_system_includes libcaf_openssl_${_linkage_suffix}
-        INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
-      set_target_properties(
-        libcaf_openssl_${_linkage_suffix}
-        PROPERTIES
-          INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-          "${libcaf_openssl_system_includes};${libcaf_openssl_includes}"
-          EXPORT_NAME openssl)
+      systemize_target(libcaf_openssl_${_linkage_suffix})
+      set_target_properties(libcaf_openssl_${_linkage_suffix}
+                            PROPERTIES EXPORT_NAME openssl)
       add_library(CAF::openssl ALIAS libcaf_openssl_${_linkage_suffix})
       install(
         TARGETS libcaf_openssl_${_linkage_suffix}
@@ -269,15 +265,8 @@ else ()
       INTERFACE
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/aux/caf/libcaf_test>"
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
-    get_target_property(libcaf_test_includes libcaf_test
-                        INTERFACE_INCLUDE_DIRECTORIES)
-    get_target_property(libcaf_test_system_includes libcaf_test
-                        INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
-    set_target_properties(
-      libcaf_test
-      PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-                 "${libcaf_test_system_includes};${libcaf_test_includes}"
-                 EXPORT_NAME test)
+    systemize_target(libcaf_test)
+    set_target_properties(libcaf_test PROPERTIES EXPORT_NAME test)
     add_library(CAF::test ALIAS libcaf_test)
     install(
       TARGETS libcaf_test

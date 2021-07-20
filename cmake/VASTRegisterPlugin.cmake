@@ -21,10 +21,9 @@ macro (VASTNormalizeInstallDirs)
           "MAN"
           "DOC")
     # Try removing CMAKE_INSTALL_PREFIX with a trailing slash from the full
-    # path to get the correct relative path because some package managers do
-    # this stupid but *technically allowed* thing where they put absolute paths
-    # into variables that are supposed to be interpreted as relative to the
-    # install prefix.
+    # path to get the correct relative path because some package managers always
+    # invoke CMake with absolute install paths even when they all share a common
+    # prefix.
     if (IS_ABSOLUTE "${CMAKE_INSTALL_${install}DIR}")
       string(
         REGEX
